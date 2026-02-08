@@ -16,6 +16,9 @@ DB_NAME = os.getenv("DB_NAME")
 DB_USER = os.getenv("DB_USER")
 DB_PASS = os.getenv("DB_PASS")
 
+if not AWS_REGION or not SQS_EVENTS_URL or not SQS_ALERTS_URL or not DB_HOST or not DB_NAME or not DB_USER or not DB_PASS:
+    raise ValueError("Missing required environment variables")
+
 sqs = boto3.client('sqs', region_name=AWS_REGION)
 
 conn = psycopg2.connect(
