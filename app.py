@@ -8,7 +8,8 @@ import time
 load_dotenv()
 
 AWS_REGION = os.getenv("AWS_REGION")
-SQS_URL = os.getenv("SQS_URL")
+SQS_EVENTS_URL = os.getenv("SQS_EVENTS_URL")
+SQS_ALERTS_URL = os.getenv("SQS_ALERTS_URL")
 DB_HOST = os.getenv("DB_HOST")
 DB_PORT = int(os.getenv("DB_PORT", 5432))
 DB_NAME = os.getenv("DB_NAME")
@@ -41,7 +42,7 @@ print("Processor started. Listening for messages...")
 while True:
     try:
         response = sqs.receive_message(
-            QueueUrl=SQS_URL,
+            QueueUrl=SQS_EVENTS_URL,
             MaxNumberOfMessages=10,
             WaitTimeSeconds=10
         )
@@ -59,9 +60,11 @@ while True:
             conn.commit()
 
             sqs.delete_message(
-                QueueUrl=SQS_URL,
+                QueueUrl=SQS_EVENTS_URL,
                 ReceiptHandle=msg['ReceiptHandle']
             )
+
+            sqs.send_message(QueueUrl=SQS_ALERTS_URL, MessageBody=json.dumps(data))
 
     except Exception as e:
         print("Error occured. Exception:", e)
